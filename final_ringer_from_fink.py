@@ -4,7 +4,7 @@ import pandas as pd
 import os
 import matplotlib.pyplot as plt
 
-makams = {'impactdata/Ashdod_with_ID.csv': (31.77757586390034, 34.65751251836753),
+makams_impact = {'impactdata/Ashdod_with_ID.csv': (31.77757586390034, 34.65751251836753),
           'impactdata/Kiryat_Gat_with_ID.csv': (31.602089287486198, 34.74535762921831),
           'impactdata/Ofakim_with_ID.csv': (31.302709659709315, 34.59685294800365),
           'impactdata/Tseelim_with_ID.csv': (31.20184656499955, 34.52669152933695),
@@ -14,11 +14,21 @@ makams = {'impactdata/Ashdod_with_ID.csv': (31.77757586390034, 34.65751251836753
           'impactdata/Gosh_Dan_with_ID.csv': (32.105913486777084, 34.78624983651992),
           'impactdata/Carmel_with_ID.csv': (32.65365306190331, 35.03028065430696)}
 
+makams_target = {'targetdata/Ashdod_with_IDtarget.csv': (31.77757586390034, 34.65751251836753),
+          'targetdata/Kiryat_Gat_with_IDtarget.csv': (31.602089287486198, 34.74535762921831),
+          'targetdata/Ofakim_with_IDtarget.csv': (31.302709659709315, 34.59685294800365),
+          'targetdata/Tseelim_with_IDtarget.csv': (31.20184656499955, 34.52669152933695),
+          'targetdata/Meron_with_IDtarget.csv': (33.00023023451869, 35.404698698883585),
+          'targetdata/YABA_with_IDtarget.csv': (30.65361041190953, 34.783379139342955),
+          'targetdata/Modiin_with_IDtarget.csv': (31.891980958022323, 34.99481765229601),
+          'targetdata/Gosh_Dan_with_IDtarget.csv': (32.105913486777084, 34.78624983651992),
+          'targetdata/Carmel_with_IDtarget.csv': (32.65365306190331, 35.03028065430696)}
+
 TO_RAD = np.pi / 180
 EARTH_RADIUS = 6371000
 
 
-def split_data_by_id(file_paths):
+def split_data_by_id(file_paths, makams):
     """
     Reads multiple CSV files and splits the combined data by unique ID values.
 
@@ -213,13 +223,17 @@ def xyz_to_lat_and_lon(x, y, z):
 #
 # split_data = [convert_to_cartesian_and_time(rocket) for rocket in split_data_by_id(file_paths)]
 
-def get_list_of_df():
+def get_list_of_df(impact:bool):
+    if impact:
+        makams = makams_impact
+    else:
+        makams = makams_target
     file_paths = makams.keys()
     # Replace with actual file paths
 
     print(file_paths)
 
-    return [convert_to_cartesian_and_time(rocket) for rocket in split_data_by_id(file_paths)]
+    return [convert_to_cartesian_and_time(rocket) for rocket in split_data_by_id(file_paths, makams)]
 
 # print(split_data)
 #
@@ -232,3 +246,9 @@ def get_list_of_df():
 
 # x,y,z = radar_measurement_to_xyz(makams[list(makams.keys())[0]][0], makams[list(makams.keys())[0]][1], 0,0,0)
 # print(xyz_to_lat_and_lon(x,y,z))
+if __name__ == '__main__':
+    splt1 = get_list_of_df(False)
+    for rocket in splt1:
+        plot_3d_locations(rocket['x'], rocket['y'], rocket['z'])
+
+
