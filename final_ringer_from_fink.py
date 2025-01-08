@@ -172,6 +172,28 @@ def convert_to_ashdod(x, y, z):
 
     return vr
 
+def convert_from_ashdod(x, y, z):
+
+    theta = (90 - 31.77757586390034) * pi / 180
+    phi = 34.65751251836753 * pi / 180
+    R = 6371000
+    x0 = R * sin(theta) * cos(phi)
+    y0 = R * sin(theta) * sin(phi)
+    z0 = R*cos(theta)
+
+    vr = np.array([[sin(theta)*cos(phi), sin(theta)*sin(phi), cos(theta)]
+    , [cos(theta)*cos(phi), cos(theta)*sin(phi), -sin(theta)]
+    , [-sin(phi), cos(phi), 0]]).T @ np.array([z, x, y])
+
+    v =  vr + np.array([x0, y0, z0 ])
+
+    return v
+
+def xyz_to_lat_and_lon(x, y, z):
+    lat = math.asin(z / math.sqrt(z ** 2 + x ** 2 + y ** 2)) / TO_RAD
+    lon = math.asin(y / math.sqrt(y ** 2 + x ** 2)) / TO_RAD
+    return lat, lon
+
 
 def plot_3d_locations(x, y, z):
     """
@@ -208,11 +230,6 @@ def plot_3d_locations(x, y, z):
 def convert_to_cartesian_and_time(df):
     return pd.DataFrame({'time': df['time'], 'x': df['x'], 'y': df['y'], 'z': df['z'], "ID": df['ID']})
 
-
-def xyz_to_lat_and_lon(x, y, z):
-    lat = math.asin(z / math.sqrt(z ** 2 + x ** 2 + y ** 2)) / TO_RAD
-    lon = math.asin(y / math.sqrt(y ** 2 + x ** 2)) / TO_RAD
-    return lat, lon
 
 
 # # # Example usage
