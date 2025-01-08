@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 
 # Load data from CSV
-file_path = 'Carmel_with_IDimpact.csv'  # Replace with your CSV file path
+file_path = 'impactdata/Carmel_with_IDimpact.csv'  # Replace with your CSV file path
 
 # Read the CSV file
 df = pd.read_csv(file_path)
