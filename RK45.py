@@ -148,9 +148,11 @@ if __name__ == "__main__":
     data = get_list_of_df(True)
     print(type(data))
     allOfTheFuckingCoordinets=[]
-    x=[]
-    y=[]
-    for given_coords in data[20:40]:
+    x_lunch=[]
+    y_lunch=[]
+    x_target=[]
+    y_target=[]
+    for given_coords in data[:90]:
         # l=len(given_coords[x'])
         # given_coords['x']=given_coords['x'][int(l*2/3):l]
         # given_coords['y']=given_coords['y'][int(l*2/3):l]
@@ -199,8 +201,20 @@ if __name__ == "__main__":
                    optimized_y[hitIndex] + optimized_y[hitIndex + 1] / 2]
         x_,y_,z_ = convert_from_ashdod(lunchCoor[0], lunchCoor[1], 0)
         lat, log = xyz_to_lat_and_lon(x_,y_,z_)
-        x.append(lat)
-        y.append(log)
+        lunchCoor[0]=lat
+        lunchCoor[1]=log
+
+        x_lunch.append(lat)
+        y_lunch.append(log)
+
+        x_, y_, z_ = convert_from_ashdod(hitCoor[0], hitCoor[1], 0)
+        lat, log = xyz_to_lat_and_lon(x_, y_, z_)
+        hitCoor[0] = lat
+        hitCoor[1] = log
+
+
+        x_target.append(lat)
+        y_target.append(log)
         allOfTheFuckingCoordinets.append([lunchCoor, hitCoor, minRocket])
         print([lunchCoor, hitCoor, minRocket])
     print(allOfTheFuckingCoordinets)
@@ -215,7 +229,7 @@ if __name__ == "__main__":
     # ax.plot(optimized_x, optimized_y, optimized_z, label="Predicted Trajectory", color='blue')
 
     # Plot the given points
-    ax.scatter(x, y, color='red', label="Given Locations")
+    ax.scatter(x_lunch, y_lunch, color='red', label="Given Locations")
 
     ax.set_title("Optimized 3D Missile Trajectory with Drag")
     ax.set_xlabel("Horizontal Distance X (m)")
@@ -225,6 +239,18 @@ if __name__ == "__main__":
     ax.legend()
 
     plt.show()
+
+    ax.scatter(x_target, y_target, color='blue', label="Given Locations")
+
+    ax.set_title("Optimized 3D Missile Trajectory with Drag")
+    ax.set_xlabel("Horizontal Distance X (m)")
+    ax.set_ylabel("Horizontal Distance Y (m)")
+    # ax.set_zlabel("Vertical Distance Z (m)")
+    ax.grid(True)
+    ax.legend()
+
+    plt.show()
+
 
     # given_coords = get_cartezian_coordinates('With ID/Target bank data/Ashdod_with_ID.csv', 20)
     # print(type(given_coords))
