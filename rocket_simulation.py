@@ -1,16 +1,22 @@
-import numpy as np
+
+import math
+
 import matplotlib.pyplot as plt
-import pandas as pd
+
 
 
 def velocity(vx, vy, vz):
-    return np.sqrt(vx ** 2 + vy ** 2 + vz ** 2)
+    return math.sqrt(vx ** 2 + vy ** 2 + vz ** 2)
 
 
 def simulate(x0, y0, z0, vx0, vy0, vz0):
-    xarr = np.array()
-    yarr = np.array()
-    zarr = np.array()
+    k = 10
+    m = 1000
+    g = 10
+
+    xarr = []
+    yarr = []
+    zarr = []
 
     x = x0
     y = y0
@@ -21,7 +27,8 @@ def simulate(x0, y0, z0, vx0, vy0, vz0):
     vz = vz0
 
     dt = 0.5
-    while (z > 0):
+    t = 0
+    while (t < 100):
         xarr.append(x)
         yarr.append(y)
         zarr.append(z)
@@ -38,22 +45,21 @@ def simulate(x0, y0, z0, vx0, vy0, vz0):
         vx += dvx
         vy += dvy
         vz += dvz
+        t += dt
 
     fig = plt.figure()
-    ax = fig.add_subplot(111, projection='3d')
+    ax = fig.add_subplot(projection='3d')
 
+    print(xarr)
     # Scatter plot
-    ax.scatter(xarr, yarr, zarr, c='b', marker='o')
-    ax.scatter(xarr[0], yarr[0], zarr[0], c='r', marker='o')
+    ax.scatter(xarr, yarr, zarr)
 
     # Label axes
     ax.set_xlabel('X')
     ax.set_ylabel('Y')
     ax.set_zlabel('Z')
 
-    # Show plot
-    plt.show()
-
+    fig.show()
 
 
 if __name__ == '__main__':
