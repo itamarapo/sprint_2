@@ -174,16 +174,16 @@ def convert_to_ashdod(x, y, z):
 
 def convert_from_ashdod(x, y, z):
 
-    theta = (90 - 31.77757586390034) * pi / 180
-    phi = 34.65751251836753 * pi / 180
+    theta = (90 - 31.77757586390034) * math.pi / 180
+    phi = 34.65751251836753 * math.pi / 180
     R = 6371000
-    x0 = R * sin(theta) * cos(phi)
-    y0 = R * sin(theta) * sin(phi)
-    z0 = R*cos(theta)
+    x0 = R * math.sin(theta) * math.cos(phi)
+    y0 = R * math.sin(theta) * math.sin(phi)
+    z0 = R*math.cos(theta)
 
-    vr = np.array([[sin(theta)*cos(phi), sin(theta)*sin(phi), cos(theta)]
-    , [cos(theta)*cos(phi), cos(theta)*sin(phi), -sin(theta)]
-    , [-sin(phi), cos(phi), 0]]).T @ np.array([z, x, y])
+    vr = np.array([[math.sin(theta)*math.cos(phi), math.sin(theta)*math.sin(phi), math.cos(theta)]
+    , [math.cos(theta)*math.cos(phi), math.cos(theta)*math.sin(phi), -math.sin(theta)]
+    , [-math.sin(phi), math.cos(phi), 0]]).T @ np.array([z, x, y])
 
     v =  vr + np.array([x0, y0, z0 ])
 
