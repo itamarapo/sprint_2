@@ -1,23 +1,22 @@
-
 import math
 import numpy as np
 import pandas as pd
 import os
 import matplotlib.pyplot as plt
 
-
-makams = {'impactdata/Ashdod_with_ID.csv':(31.77757586390034,34.65751251836753),
-    'impactdata/Kiryat_Gat_with_ID.csv':(31.602089287486198,34.74535762921831),
-    'impactdata/Ofakim_with_ID.csv':(31.302709659709315,34.59685294800365),
-    'impactdata/Tseelim_with_ID.csv':(31.20184656499955,34.52669152933695),
-    'impactdata/Meron_with_ID.csv':(33.00023023451869,35.404698698883585),
-    'impactdata/YABA_with_ID.csv':(30.65361041190953,34.783379139342955),
-    'impactdata/Modiin_with_ID.csv':(31.891980958022323,34.99481765229601),
-    'impactdata/Gosh_Dan_with_ID.csv':(32.105913486777084,34.78624983651992),
-    'impactdata/Carmel_with_ID.csv':(32.65365306190331,35.03028065430696)}
+makams = {'impactdata/Ashdod_with_ID.csv': (31.77757586390034, 34.65751251836753),
+          'impactdata/Kiryat_Gat_with_ID.csv': (31.602089287486198, 34.74535762921831),
+          'impactdata/Ofakim_with_ID.csv': (31.302709659709315, 34.59685294800365),
+          'impactdata/Tseelim_with_ID.csv': (31.20184656499955, 34.52669152933695),
+          'impactdata/Meron_with_ID.csv': (33.00023023451869, 35.404698698883585),
+          'impactdata/YABA_with_ID.csv': (30.65361041190953, 34.783379139342955),
+          'impactdata/Modiin_with_ID.csv': (31.891980958022323, 34.99481765229601),
+          'impactdata/Gosh_Dan_with_ID.csv': (32.105913486777084, 34.78624983651992),
+          'impactdata/Carmel_with_ID.csv': (32.65365306190331, 35.03028065430696)}
 
 TO_RAD = np.pi / 180
 EARTH_RADIUS = 6371000
+
 
 def split_data_by_id(file_paths):
     """
@@ -35,7 +34,7 @@ def split_data_by_id(file_paths):
     for file_path in file_paths:
         if os.path.exists(file_path):
             data = pd.read_csv(file_path)
-            add_column_of_global_coord(data,makams[file_path][0],makams[file_path][1])
+            add_column_of_global_coord(data, makams[file_path][0], makams[file_path][1])
             combined_data = pd.concat([combined_data, data], ignore_index=True)
         else:
             print(f"File not found: {file_path}")
@@ -49,13 +48,14 @@ def split_data_by_id(file_paths):
 
     return data_by_id
 
+
 def add_column_of_global_coord(df, lat, lon):
     column_x = []
     column_y = []
     column_z = []
     for index, row in df.iterrows():
-        x,y,z = radar_measurement_to_xyz(lat,lon, row['range'], row['elevation'], row['azimuth'])
-        z,x,y = convert_to_ashdod(x,y,z)
+        x, y, z = radar_measurement_to_xyz(lat, lon, row['range'], row['elevation'], row['azimuth'])
+        z, x, y = convert_to_ashdod(x, y, z)
         column_x.append(x)
         column_y.append(y)
         column_z.append(z)
@@ -63,7 +63,6 @@ def add_column_of_global_coord(df, lat, lon):
     df['x'] = column_x
     df['y'] = column_y
     df['z'] = column_z
-
 
 
 def spherical_to_global(phi, theta, r, theta0, el):
@@ -82,11 +81,12 @@ def spherical_to_global(phi, theta, r, theta0, el):
     """
     R = 6371000
 
-    x0 = (R*math.cos(phi) -r*math.cos(el)*math.cos(theta0)*math.sin(phi))*math.cos(theta)-r*math.cos(el)*math.sin(theta0)*math.sin(theta)
-    y0 = (R*math.cos(phi) -r*math.cos(el)*math.cos(theta0)*math.sin(phi))*math.sin(theta)+r*math.cos(el)*math.sin(theta0)*math.cos(theta)
-    z0 = R*math.sin(phi) +r*math.cos(el)*math.cos(theta0)*math.cos(phi)
+    x0 = (R * math.cos(phi) - r * math.cos(el) * math.cos(theta0) * math.sin(phi)) * math.cos(theta) - r * math.cos(
+        el) * math.sin(theta0) * math.sin(theta)
+    y0 = (R * math.cos(phi) - r * math.cos(el) * math.cos(theta0) * math.sin(phi)) * math.sin(theta) + r * math.cos(
+        el) * math.sin(theta0) * math.cos(theta)
+    z0 = R * math.sin(phi) + r * math.cos(el) * math.cos(theta0) * math.cos(phi)
     return x0, y0, z0
-
 
     # # המרת מעלות לרדיאנים
     # lat_rad = math.radians(lat)
@@ -153,17 +153,17 @@ def convert_to_ashdod(x, y, z):
     R = EARTH_RADIUS
     x0 = R * math.sin(theta) * math.cos(phi)
     y0 = R * math.sin(theta) * math.sin(phi)
-    z0 = R*math.cos(theta)
+    z0 = R * math.cos(theta)
 
-    v = np.array([x-x0, y-y0, z-z0])
-    vr = np.array([[math.sin(theta)*math.cos(phi), math.sin(theta)*math.sin(phi), math.cos(theta)]
-    , [math.cos(theta)*math.cos(phi), math.cos(theta)*math.sin(phi), -math.sin(theta)]
-    , [-math.sin(phi), math.cos(phi), 0]]) @ v
+    v = np.array([x - x0, y - y0, z - z0])
+    vr = np.array([[math.sin(theta) * math.cos(phi), math.sin(theta) * math.sin(phi), math.cos(theta)]
+                      , [math.cos(theta) * math.cos(phi), math.cos(theta) * math.sin(phi), -math.sin(theta)]
+                      , [-math.sin(phi), math.cos(phi), 0]]) @ v
 
     return vr
 
 
-def plot_3d_locations(x,y,z):
+def plot_3d_locations(x, y, z):
     """
     Plots a list of three-dimensional locations on a 3D graph.
 
@@ -194,29 +194,41 @@ def plot_3d_locations(x,y,z):
     # Display the plot
     plt.show()
 
-def convert_to_cartesian_and_time(df):
-    return pd.DataFrame({'time': df['time'], 'x': df['x'], 'y':df['y'], 'z':df['z'], "ID":df['ID']})
 
-def xyz_to_lat_and_lon(x,y,z):
-    lat = math.asin(z/math.sqrt(z**2+x**2+y**2))/TO_RAD
-    lon = math.asin(y/math.sqrt(y**2+x**2))/TO_RAD
+def convert_to_cartesian_and_time(df):
+    return pd.DataFrame({'time': df['time'], 'x': df['x'], 'y': df['y'], 'z': df['z'], "ID": df['ID']})
+
+
+def xyz_to_lat_and_lon(x, y, z):
+    lat = math.asin(z / math.sqrt(z ** 2 + x ** 2 + y ** 2)) / TO_RAD
+    lon = math.asin(y / math.sqrt(y ** 2 + x ** 2)) / TO_RAD
     return lat, lon
 
-# # Example usage
-file_paths = makams.keys()
-# Replace with actual file paths
 
-print(file_paths)
+# # # Example usage
+# file_paths = makams.keys()
+# # Replace with actual file paths
+#
+# print(file_paths)
+#
+# split_data = [convert_to_cartesian_and_time(rocket) for rocket in split_data_by_id(file_paths)]
 
-split_data = [convert_to_cartesian_and_time(rocket) for rocket in split_data_by_id(file_paths)]
+def get_list_of_df():
+    file_paths = makams.keys()
+    # Replace with actual file paths
+
+    print(file_paths)
+
+    return [convert_to_cartesian_and_time(rocket) for rocket in split_data_by_id(file_paths)]
+
 # print(split_data)
 #
 #
 # print(split_data[0])
 #
 #
-for rocket in split_data:
-    plot_3d_locations(rocket['x'], rocket['y'], rocket['z'])
+# for rocket in split_data:
+#     plot_3d_locations(rocket['x'], rocket['y'], rocket['z'])
 
 # x,y,z = radar_measurement_to_xyz(makams[list(makams.keys())[0]][0], makams[list(makams.keys())[0]][1], 0,0,0)
 # print(xyz_to_lat_and_lon(x,y,z))
