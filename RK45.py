@@ -5,7 +5,7 @@ import pandas as pd
 from scipy.interpolate import interp1d
 
 from scipy.optimize import minimize
-from final_ringer_from_fink import get_list_of_df
+from final_ringer_from_fink import *
 
 matplotlib.use('TkAgg')
 import pyproj
@@ -20,8 +20,8 @@ rockets['Grad'] = {'mass': 160, 'friction': 11.121, 'initialVel': 1240, 'A': 0.0
 rockets['M75'] = {'mass': 400, 'friction': 0.77, 'initialVel': 1270, 'A': 0.031, 'color': 'red'}
 rockets['R160'] = {'mass': 670, 'friction': 1.243, 'initialVel': 2640, 'A': 0.072, 'color': 'black'}
 
-total_time_of_flight = 68
-number_of_point = 50
+total_time_of_flight = 58
+number_of_point = 20
 # this is just for the start
 mass = 1
 friction = 0
@@ -36,7 +36,7 @@ def projectile_motion(t, y):
     v = np.sqrt(vx ** 2 + vy ** 2 + vz ** 2)  # speed of the projectile
 
     # Drag force magnitude
-    drag_force = 1 / 80 * rho * A * friction * v ** 2
+    drag_force = 1 / 70 * rho * A * friction * v ** 2
     drag_acceleration = drag_force / mass
 
     # Calculate acceleration components (including gravity)
@@ -83,7 +83,7 @@ def error_function(initial_conditions, given_coords, total_time=total_time_of_fl
     t_eval, predicted_x, predicted_y, predicted_z = predict_trajectory(initial_conditions, total_time)
     # Interpolate the predicted trajectory to match the given coordinates' number of points
     given_t = np.linspace(0, total_time_of_flight,
-                          len(given_coords))  # Assume given coords are evenly spaced over the total time
+                          len(given_coords['x']))  # Assume given coords are evenly spaced over the total time
 
     # Interpolate predicted trajectory to match the given time points
     interp_x = interp1d(t_eval, predicted_x, kind='linear', fill_value="extrapolate")
@@ -96,9 +96,9 @@ def error_function(initial_conditions, given_coords, total_time=total_time_of_fl
     interp_pred_z = interp_z(given_t)
 
     # Calculate the error (sum of squared differences between predicted and actual coordinates)
-    error = np.sum((interp_pred_x - given_coords[:, 0]) ** 2 +
-                   (interp_pred_y - given_coords[:, 1]) ** 2 +
-                   (interp_pred_z - given_coords[:, 2]) ** 2)
+    error = np.sum((interp_pred_x - given_coords['x'].to_numpy()) ** 2 +
+                   (interp_pred_y - given_coords['y'].to_numpy()) ** 2 +
+                   (interp_pred_z - given_coords['z'].to_numpy()) ** 2)
 
     return error
 
@@ -145,79 +145,159 @@ if __name__ == "__main__":
     # Example given coordinates (these would typically be taken from your dataset)
     # The coordinates should be in the form: [(x1, y1, z1, t), (x2, y2, z2, t), ...]
 
-    data = get_list_of_df()
-    for given_coords in data:
+    data = get_list_of_df(True)
+    print(type(data))
+    allOfTheFuckingCoordinets=[]
+    x=[]
+    y=[]
+    for given_coords in data[20:40]:
+        # l=len(given_coords[x'])
+        # given_coords['x']=given_coords['x'][int(l*2/3):l]
+        # given_coords['y']=given_coords['y'][int(l*2/3):l]
+        # given_coords['z']=given_coords['z'][int(l*2/3):l
 
 
-    given_coords = get_cartezian_coordinates('With ID/Target bank data/Ashdod_with_ID.csv', 20)
-    print(type(given_coords))
-    given_coords = data[0]
-    answers = {}
-    for rocket in rockets:
-        friction = rockets[rocket]['friction']
-        mass = rockets[rocket]['mass']
-        initialVel = rockets[rocket]['initialVel']
-        A = rockets[rocket]['A']
-        # Initial guess for the optimization: [x0, y0, z0, v0, angle_xy, angle_z,t,m]
-        initial_guess = [given_coords[0][0], given_coords[0][1], given_coords[0][2], initialVel, 45,
-                         30]  # initial guess
-        # Fit the trajectory to the given coordinates
-        t_eval, optimized_x, optimized_y, optimized_z, optimized_initial_conditions = fit_trajectory_to_coordinates(
-            given_coords, initial_guess)
-        er = error_function(optimized_initial_conditions, given_coords)
+        answers = {}
+        for rocket in rockets:
+            friction = rockets[rocket]['friction']
+            mass = rockets[rocket]['mass']
+            initialVel = rockets[rocket]['initialVel']
+            A = rockets[rocket]['A']
+            # Initial guess for the optimization: [x0, y0, z0, v0, angle_xy, angle_z,t,m]
+            initial_guess = [given_coords['x'][0], given_coords['y'][0], given_coords['z'][0], initialVel, 45,
+                             30]  # initial guess
+            # Fit the trajectory to the given coordinates
+            t_eval, optimized_x, optimized_y, optimized_z, optimized_initial_conditions = fit_trajectory_to_coordinates(
+                given_coords, initial_guess)
+            er = error_function(optimized_initial_conditions, given_coords)
 
-        answers[rocket] = [er, t_eval, optimized_x, optimized_y, optimized_z, optimized_initial_conditions]
+            answers[rocket] = [er, t_eval, optimized_x, optimized_y, optimized_z, optimized_initial_conditions]
 
-    minRocket = 'Qassam 4'
-    minError = answers[minRocket][0]
-    for rocket in answers:
-        if answers[rocket][0] < minError:
-            minError = answers[rocket][0]
-            minRocket = rocket
-    print(f"minRocket: {minRocket}")
+        minRocket = 'Qassam 4'
+        minError = answers[minRocket][0]
+        for rocket in answers:
+            if answers[rocket][0] < minError:
+                minError = answers[rocket][0]
+                minRocket = rocket
+        # print(f"minRocket: {minRocket}")
 
-    er, t_eval, optimized_x, optimized_y, optimized_z, optimized_initial_conditions = answers[minRocket]
 
-    lunchIndex = 0
-    hitIndex = 0
-    i = 0
-    while (i < len(optimized_z) - 1):
-        if optimized_z[i] < 0 and 0 < optimized_z[i + 1]:
-            lunchIndex = i
-        if optimized_z[i] > 0 and 0 > optimized_z[i + 1]:
-            hitIndex = i
-        i = i + 1
-    lunchCoor = [optimized_x[lunchIndex] + optimized_x[lunchIndex + 1] / 2,
-                 optimized_y[lunchIndex] + optimized_y[lunchIndex + 1] / 2]
-    hitCoor = [optimized_x[hitIndex] + optimized_x[hitIndex + 1] / 2,
-               optimized_y[hitIndex] + optimized_y[hitIndex + 1] / 2]
+        er, t_eval, optimized_x, optimized_y, optimized_z, optimized_initial_conditions = answers[minRocket]
 
-    print(f"lunchCoor:{lunchCoor}")
-    print(f"hitCoor:{hitCoor}")
-
-    # # Fit the trajectory to the given coordinates
-    # t_eval, optimized_x, optimized_y, optimized_z, optimized_initial_conditions = fit_trajectory_to_coordinates(
-    #     given_coords, initial_guess)
-    # # print( t_eval, optimized_x, optimized_y, optimized_z)
-    # Plotting the result
+        lunchIndex = 0
+        hitIndex = 0
+        i = 0
+        while (i < len(optimized_z) - 1):
+            if optimized_z[i] < 0 and 0 < optimized_z[i + 1]:
+                lunchIndex = i
+            if optimized_z[i] > 0 and 0 > optimized_z[i + 1]:
+                hitIndex = i
+            i = i + 1
+        lunchCoor = [optimized_x[lunchIndex] + optimized_x[lunchIndex + 1] / 2,
+                     optimized_y[lunchIndex] + optimized_y[lunchIndex + 1] / 2]
+        hitCoor = [optimized_x[hitIndex] + optimized_x[hitIndex + 1] / 2,
+                   optimized_y[hitIndex] + optimized_y[hitIndex + 1] / 2]
+        x_,y_,z_ = convert_from_ashdod(lunchCoor[0], lunchCoor[1], 0)
+        lat, log = xyz_to_lat_and_lon(x_,y_,z_)
+        x.append(lat)
+        y.append(log)
+        allOfTheFuckingCoordinets.append([lunchCoor, hitCoor, minRocket])
+        print([lunchCoor, hitCoor, minRocket])
+    print(allOfTheFuckingCoordinets)
     fig = plt.figure(figsize=(10, 6))
-    ax = fig.add_subplot(111, projection='3d')
-    for rocket in rockets:
-        er, t_eval, optimized_x, optimized_y, optimized_z, optimized_initial_conditions = answers[rocket]
-        ax.plot(optimized_x, optimized_y, optimized_z, label=f"Predicted Trajectory:{rocket}",
-                color=rockets[rocket]['color'])
+    ax = fig.add_subplot(111)
+    # for rocket in rockets:
+    #     er, t_eval, optimized_x, optimized_y, optimized_z, optimized_initial_conditions = answers[rocket]
+    #     ax.plot(optimized_x, optimized_y, optimized_z, label=f"Predicted Trajectory:{rocket}",
+    #             color=rockets[rocket]['color'])
 
     # Plot the optimized trajectory
     # ax.plot(optimized_x, optimized_y, optimized_z, label="Predicted Trajectory", color='blue')
 
     # Plot the given points
-    ax.scatter(given_coords[:, 0], given_coords[:, 1], given_coords[:, 2], color='red', label="Given Locations")
+    ax.scatter(x, y, color='red', label="Given Locations")
 
     ax.set_title("Optimized 3D Missile Trajectory with Drag")
     ax.set_xlabel("Horizontal Distance X (m)")
     ax.set_ylabel("Horizontal Distance Y (m)")
-    ax.set_zlabel("Vertical Distance Z (m)")
+    # ax.set_zlabel("Vertical Distance Z (m)")
     ax.grid(True)
     ax.legend()
 
     plt.show()
+
+    # given_coords = get_cartezian_coordinates('With ID/Target bank data/Ashdod_with_ID.csv', 20)
+    # print(type(given_coords))
+    # given_coords = data[0]
+    # answers = {}
+    # for rocket in rockets:
+    #     friction = rockets[rocket]['friction']
+    #     mass = rockets[rocket]['mass']
+    #     initialVel = rockets[rocket]['initialVel']
+    #     A = rockets[rocket]['A']
+    #     # Initial guess for the optimization: [x0, y0, z0, v0, angle_xy, angle_z,t,m]
+    #     initial_guess = [given_coords[0][0], given_coords[0][1], given_coords[0][2], initialVel, 45,
+    #                      30]  # initial guess
+    #     # Fit the trajectory to the given coordinates
+    #     t_eval, optimized_x, optimized_y, optimized_z, optimized_initial_conditions = fit_trajectory_to_coordinates(
+    #         given_coords, initial_guess)
+    #     er = error_function(optimized_initial_conditions, given_coords)
+    #
+    #     answers[rocket] = [er, t_eval, optimized_x, optimized_y, optimized_z, optimized_initial_conditions]
+    #
+    # minRocket = 'Qassam 4'
+    # minError = answers[minRocket][0]
+    # for rocket in answers:
+    #     if answers[rocket][0] < minError:
+    #         minError = answers[rocket][0]
+    #         minRocket = rocket
+    # print(f"minRocket: {minRocket}")
+    #
+    # er, t_eval, optimized_x, optimized_y, optimized_z, optimized_initial_conditions = answers[minRocket]
+    #
+    # lunchIndex = 0
+    # hitIndex = 0
+    # i = 0
+    # while (i < len(optimized_z) - 1):
+    #     if optimized_z[i] < 0 and 0 < optimized_z[i + 1]:
+    #         lunchIndex = i
+    #     if optimized_z[i] > 0 and 0 > optimized_z[i + 1]:
+    #         hitIndex = i
+    #     i = i + 1
+    # lunchCoor = [optimized_x[lunchIndex] + optimized_x[lunchIndex + 1] / 2,
+    #              optimized_y[lunchIndex] + optimized_y[lunchIndex + 1] / 2]
+    # hitCoor = [optimized_x[hitIndex] + optimized_x[hitIndex + 1] / 2,
+    #            optimized_y[hitIndex] + optimized_y[hitIndex + 1] / 2]
+    #
+    # print(f"lunchCoor:{lunchCoor}")
+    # print(f"hitCoor:{hitCoor}")
+
+
+
+    # this is the graph part
+    # # # Fit the trajectory to the given coordinates
+    # # t_eval, optimized_x, optimized_y, optimized_z, optimized_initial_conditions = fit_trajectory_to_coordinates(
+    # #     given_coords, initial_guess)
+    # # # print( t_eval, optimized_x, optimized_y, optimized_z)
+    # # Plotting the result
+    # fig = plt.figure(figsize=(10, 6))
+    # ax = fig.add_subplot(111, projection='3d')
+    # for rocket in rockets:
+    #     er, t_eval, optimized_x, optimized_y, optimized_z, optimized_initial_conditions = answers[rocket]
+    #     ax.plot(optimized_x, optimized_y, optimized_z, label=f"Predicted Trajectory:{rocket}",
+    #             color=rockets[rocket]['color'])
+    #
+    # # Plot the optimized trajectory
+    # # ax.plot(optimized_x, optimized_y, optimized_z, label="Predicted Trajectory", color='blue')
+    #
+    # # Plot the given points
+    # ax.scatter(given_coords[:, 0], given_coords[:, 1], given_coords[:, 2], color='red', label="Given Locations")
+    #
+    # ax.set_title("Optimized 3D Missile Trajectory with Drag")
+    # ax.set_xlabel("Horizontal Distance X (m)")
+    # ax.set_ylabel("Horizontal Distance Y (m)")
+    # ax.set_zlabel("Vertical Distance Z (m)")
+    # ax.grid(True)
+    # ax.legend()
+    #
+    # plt.show()
