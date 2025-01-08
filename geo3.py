@@ -89,6 +89,7 @@ def geo_to_cartesian(lat, lon, alt, radar_lat1, radar_lon1, radar_alt1):
     delta_alt = alt - radar_alt1
     return delta_lon, delta_lat, delta_alt
 
+l_min = min(len(x_arr1),len(x_arr2),len(x_arr3))
 # Convert Radar 1 location to Cartesian coordinates (origin, so it's just (0, 0, 0))
 x1, y1, z1 = 631778, 167644, 0
 
@@ -97,15 +98,21 @@ x2, y2, z2 = 728811,203111, 0
 
 # Convert Radar 3's geographical location to Cartesian relative to Radar 1
 x3, y3, z3 = 668132,179979, 0
-
+# x1, y1, z1 = 0,0,0
+#
+# # Convert Radar 2's geographical location to Cartesian relative to Radar 1
+# x2, y2, z2 = 0,0,0
+#
+# # Convert Radar 3's geographical location to Cartesian relative to Radar 1
+# x3, y3, z3 = 0,0,0
 # Subtract Radar 1's Cartesian coordinates from all points in the racket path of Radar 1
-x_arr1_rel, y_arr1_rel, z_arr1_rel = x_arr1 - x1, y_arr1 - y1, z_arr1 - z1
+x_arr1_rel, y_arr1_rel, z_arr1_rel = x_arr1 + x1, y_arr1 + y1, z_arr1
 
 # Subtract Radar 2's Cartesian coordinates from all points in the racket path of Radar 2
-x_arr2_rel, y_arr2_rel, z_arr2_rel = x_arr2 - x2, y_arr2 - y2, z_arr2 - z2
+x_arr2_rel, y_arr2_rel, z_arr2_rel = x_arr2 +x2, y_arr2 +y2, z_arr2
 
 # Subtract Radar 3's Cartesian coordinates from all points in the racket path of Radar 3
-x_arr3_rel, y_arr3_rel, z_arr3_rel = x_arr3 - x3, y_arr3 - y3, z_arr3 - z3
+x_arr3_rel, y_arr3_rel, z_arr3_rel = x_arr3 + x3, y_arr3 + y3, z_arr3
 
 
 # 3D Cartesian Plot
@@ -121,16 +128,6 @@ ax.plot(x_arr2_rel, y_arr2_rel, z_arr2_rel, label="Racket Path from Radar 2", ma
 # Plot racket path from Radar 3 (relative to Radar 1)
 ax.plot(x_arr3_rel, y_arr3_rel, z_arr3_rel, label="Racket Path from Gosh_Dan", marker='^', linestyle='-', markersize=5)
 
-# # Mark Radar 1 location (origin)
-# ax.scatter(x1, y1, z1, color='red', label="Radar 1 Location", s=50)
-#
-# # Mark Radar 2 location (relative to Radar 1)
-# # Use x2, y2, z2 directly without indexing
-# ax.scatter(x2, y2, z2, color='blue', label="Radar 2 Location", s=50)
-#
-#
-# # Mark Radar 3 location (relative to Radar 1)
-# ax.scatter(x3, y3, z3, color='green', label="Gosh_Dan Location", s=50)
 
 # Add labels
 ax.set_xlabel("X (meters)")
