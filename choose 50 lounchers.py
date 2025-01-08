@@ -47,32 +47,45 @@ def choose_launchers(points, max_num_launchers):
 def improve_choose_launchers(groups):
     new_launchers = []
     for group in groups:
-        new_launch = center_of_mass(group)
+        group_locations = []
+        for rocket in group:
+            group_locations.append(rocket[0])
+        new_launch = center_of_mass(group_locations)
         new_launchers.append(new_launch)
     return new_launchers
 
 
-def separate_to_groups(points, launchers):
+def separate_to_groups(data, launchers):
     group = []
     for i in range(len(launchers)):
         group.append([])
-    for point in points:
-        group[find_nearest_point(point, launchers)].append(point)
+    for rocket in data:
+        group[find_nearest_point(rocket[0], launchers)].append(rocket)
     return group
 
 
-def find_launchers(points):
+def find_launchers(data):
+    points = []
+    for rocket in data:
+        points.append(rocket[0])
     launchers_even = choose_launchers(points, MAX_NUM_LAUNCHERS)
-    groups = separate_to_groups(points, launchers_even)
+    groups = separate_to_groups(data, launchers_even)
     launchers_odd = improve_choose_launchers(groups)
     while not list_equal(launchers_even, launchers_odd):
-        groups = separate_to_groups(points, launchers_odd)
+        groups = separate_to_groups(data, launchers_odd)
         launchers_even = improve_choose_launchers(groups)
-        groups = separate_to_groups(points, launchers_even)
+        groups = separate_to_groups(data, launchers_even)
         launchers_odd = improve_choose_launchers(groups)
     return launchers_even, groups
 
 
-if __name__ == "__main__":
-    points = [(1,1),(2,2),(1,0),(3,1),(4,7),(10,12),(0,4)]
-    print(find_launchers(points))
+def all_data_launchers(data):
+    launchers, groups = find_launchers(data)
+    data_launchers = []
+    for i in range(len(launchers)):
+        data_launchers.append([])
+        data_launchers[i].append(launchers[i])
+        data_launchers[i].append([])
+        for j in range(len(groups[i])):
+            data_launchers[i][1].append(groups[i][j][2])
+    return data_launchers
