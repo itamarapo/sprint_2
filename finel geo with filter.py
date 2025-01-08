@@ -10,6 +10,54 @@ def find_threshold(df, i, threshold0 = 200 ,min_dots = 50):
         n = len(df[(df["ID"] == i) & (df["range_uncertainty"] < threshold)])
     return threshold
 
+def geodetic_to_cartesian(lat, lon, alt, ref_lat, ref_lon, ref_alt):
+    """
+    Converts a location in geodetic coordinates (latitude, longitude, altitude)
+    to Cartesian coordinates (x, y, z) relative to a specific reference location.
+
+    Parameters:
+        lat (float): Latitude of the location (in degrees).
+        lon (float): Longitude of the location (in degrees).
+        alt (float): Altitude of the location (in meters).
+        ref_lat (float): Latitude of the reference location (in degrees).
+        ref_lon (float): Longitude of the reference location (in degrees).
+        ref_alt (float): Altitude of the reference location (in meters).
+
+    Returns:
+        tuple: Cartesian coordinates (x, y, z) relative to the reference location.
+    """
+    # WGS84 ellipsoid constants
+    a = 6378137.0  # Semi-major axis (in meters)
+    f = 1 / 298.257223563  # Flattening
+    e2 = f * (2 - f)  # Square of eccentricity
+
+    # Helper function to convert lat/lon/alt to ECEF coordinates
+    def geodetic_to_ecef(lat, lon, alt):
+        lat_rad = np.radians(lat)
+        lon_rad = np.radians(lon)
+
+        # Prime vertical radius of curvature
+        N = a / np.sqrt(1 - e2 * np.sin(lat_rad)**2)
+
+        # Calculate ECEF coordinates
+        x = (N + alt) * np.cos(lat_rad) * np.cos(lon_rad)
+        y = (N + alt) * np.cos(lat_rad) * np.sin(lon_rad)
+        z = (N * (1 - e2) + alt) * np.sin(lat_rad)
+
+        return np.array([x, y, z])
+
+    # Convert reference location to ECEF
+    ref_ecef = geodetic_to_ecef(ref_lat, ref_lon, ref_alt)
+
+    # Convert target location to ECEF
+    target_ecef = geodetic_to_ecef(lat, lon, alt)
+
+    # Calculate relative Cartesian coordinates
+    relative_cartesian = target_ecef - ref_ecef
+
+    return tuple(relative_cartesian)
+
+
 
 
 
@@ -93,4 +141,4 @@ for i in range(1,100):
     ax.legend()
 
     # Show the 3D plot
-    #plt.show()
+    plt.show()
