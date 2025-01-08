@@ -54,7 +54,7 @@ def split_data_by_id(file_paths, makams):
         raise ValueError("The 'ID' column is missing in the input files.")
 
     # Split data by unique IDs
-    data_by_id = [group for _, group in combined_data.groupby('ID')]
+    data_by_id = [group.reset_index() for _, group in combined_data.groupby('ID')]
 
     return data_by_id
 
@@ -252,6 +252,9 @@ def get_list_of_df(impact:bool):
 
     return [convert_to_cartesian_and_time(rocket) for rocket in split_data_by_id(file_paths, makams)]
 
+
+def rocket_df_after_time_reduction(df, time_end):
+    return df[df['time']<time_end]
 # print(split_data)
 #
 #
@@ -266,6 +269,7 @@ def get_list_of_df(impact:bool):
 if __name__ == '__main__':
     splt1 = get_list_of_df(False)
     for rocket in splt1:
-        plot_3d_locations(rocket['x'], rocket['y'], rocket['z'])
+        rock = rocket_df_after_time_reduction(rocket, rocket['time'][0]+10)
+        plot_3d_locations(rock['x'], rock['y'], rock['z'])
 
 
